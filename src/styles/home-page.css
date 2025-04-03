@@ -4,18 +4,34 @@
   position: absolute;
   z-index: -1;
 }
+/* Center content vertically and horizontally */
+.centered-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200vh; /* Use 100% of the viewport height */
+  padding-left: 400px;
+  padding-top: 0px; /* Optional padding to make it look more spaced */
+}
 
-.grid-bg {
+.job-list-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 30vh;
+}
+
+/* .grid-bg {
   background: url('/assets/background/grid-bg.svg') no-repeat;
-}
+} */
 
-.grain-background {
+/* .grain-background {
   background: url('/assets/background/grain-bg.svg') repeat;
-}
+} */
 
 .grain-blur {
   top: -220px;
-  background: url('/assets/background/grain-blur.svg') no-repeat 50%;
+  background: url('/assets/background/newBlurr.svg') no-repeat 50%;
 }
 
 .large-blur {
@@ -25,14 +41,14 @@
   opacity: 0.2;
   background: radial-gradient(
     70.71% 70.71% at 50% 50%,
-    rgba(117, 173, 255, 0.2) 0%,
+    rgba(154, 255, 117, 0.2) 0%,
     rgba(117, 173, 255, 0) 70%,
     rgba(117, 173, 255, 0) 100%
   );
 }
 
 .small-blur {
-  background: url('/assets/background/small-blur.svg') no-repeat 50%;
+  background: url('/assets/background/newBlurr.svg') no-repeat 50%;
 }
 
 .featured-card-badge {
@@ -45,12 +61,7 @@
 
 .featured-card-badge::before {
   content: '';
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 15%,
-    rgba(255, 248, 0, 0.6) 50%,
-    rgba(255, 255, 255, 0) 85%
-  );
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 15%, rgba(0, 255, 4, 0.6) 50%, rgba(255, 255, 255, 0) 85%);
   position: absolute;
   left: 8px;
   top: -1px;

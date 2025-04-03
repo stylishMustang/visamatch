@@ -3,7 +3,7 @@ import Image from 'next/image';
 export function BuiltUsingTools() {
   return (
     <div className={'mx-auto max-w-7xl text-center px-8 mt-24 mb-24'}>
-      <span className={'text-base'}>Built with</span>
+      <span className={'text-base'}>Hired at these companies</span>
       <div className={'flex flex-row flex-wrap gap-6 justify-center md:justify-between items-center mt-8 md:gap-1'}>
         <Image src={'/assets/icons/logo/paddle-logo.svg'} alt={'TailwindCSS logo'} width={120} height={32} />
         <Image src={'/assets/icons/logo/tailwind-logo.svg'} alt={'TailwindCSS logo'} width={194} height={24} />

@@ -14,7 +14,7 @@ export const PricingTier: Tier[] = [
     id: 'starter',
     icon: '/assets/icons/price-tiers/free-icon.svg',
     description: 'Ideal for individuals who want to get started with simple design tasks.',
-    features: ['1 workspace', 'Limited collaboration', 'Export to PNG and SVG'],
+    features: ['5 Free Jobs', 'No Recruiter Contacts', 'Sponsorship Information'],
     featured: false,
     priceId: { month: 'pri_01hsxyh9txq4rzbrhbyngkhy46', year: 'pri_01hsxyh9txq4rzbrhbyngkhy46' },
   },
