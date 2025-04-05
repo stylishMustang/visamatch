@@ -11,7 +11,8 @@ export function CheckoutHeader() {
           <ChevronLeft />
         </Button>
       </Link>
-      <Image src={'/passport logo.png'} alt={'AeroEdit'} width={131} height={28} />
+      {/* add the logo here */}
+      <Image src={''} alt={'AeroEdit'} width={131} height={28} />
     </div>
   );
 }
