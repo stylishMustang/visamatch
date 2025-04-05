@@ -6,10 +6,16 @@ import { Button } from '@/components/ui/button';
 interface Props {
   user: User | null;
 }
-
+const countryValue: string = 'USA';
 export default function Header({ user }: Props) {
   return (
     <nav>
+      {/*              
+  <Button>
+  <Link href="#">this
+  </Link>
+  </Button> */}
+
       <div className="mx-auto max-w-7xl relative px-[32px] py-[18px] flex items-center justify-between">
         <div className="flex flex-1 items-center justify-start">
           <Link className="flex items-center" href={'/'}>

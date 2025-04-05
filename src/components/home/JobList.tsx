@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import router from 'next/router';
 
 type Job = {
   id: string;
@@ -9,16 +10,17 @@ type Job = {
   visa_type: string;
   visa_verified: boolean;
   salary: number;
-  // contact_email: string;
   url: string;
 };
 
 export default function JobList() {
   const supabase = createClient();
-  const [jobs, setJobs] = useState<Job[]>([]); // Start with an empty array
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedVisa, setSelectedVisa] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
+  const [jobsToShow, setJobsToShow] = useState(3);
+  const [userHasPaid, setUserHasPaid] = useState(false);
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -36,9 +38,7 @@ export default function JobList() {
     e.preventDefault();
     if (!searchTerm) return;
 
-    // Reset jobs before fetching new ones
-    setJobs([]);
-
+    setJobs([]); // Reset jobs before fetching new ones
     setLoading(true);
 
     const res = await fetch(`/api/fetch-jobs?role=${encodeURIComponent(searchTerm)}`);
@@ -51,23 +51,35 @@ export default function JobList() {
     setLoading(false);
   };
 
+  const handleShowMore = () => {
+    setJobsToShow(jobsToShow + 10); // Add 10 more jobs when "Show More" is clicked
+  };
+
   return (
     <div className="p-6">
       <form onSubmit={handleSearch} className="mb-6">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search job title e.g. frontend developer"
-          className="px-4 py-2 border rounded-md w-full max-w-md"
-        />
-        <button type="submit" className="ml-2 px-4 py-2 bg-blue-600 text-white rounded-md" disabled={loading}>
-          {loading ? 'Fetching...' : 'Search'}
-        </button>
+        <div className="flex items-center">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search job title e.g. frontend developer"
+            className="px-4 py-2 border rounded-md w-full max-w-md"
+          />
+          <button
+            type="submit"
+            className="ml-2 px-4 py-2 bg-yellow-300 text-white rounded-md hover:bg-yellow-400"
+            disabled={loading}
+          >
+            {loading ? 'Fetching...' : 'Search'}
+          </button>
+        </div>
       </form>
 
       <h2 className="text-2xl font-bold mb-4">Visa-Sponsored Jobs</h2>
-      <div className="mb-4">
+
+      {/* Filter by Visa Type */}
+      <div className="mb-4 bg-red-70">
         <label htmlFor="visaFilter" className="block text-sm font-medium text-gray-700 mb-1">
           Filter by Visa Type
         </label>
@@ -89,14 +101,15 @@ export default function JobList() {
         </select>
       </div>
 
+      {/* Display jobs */}
       <div className="space-y-4">
-        {filteredJobs.map((job) => (
+        {filteredJobs.slice(0, jobsToShow).map((job) => (
           <a
             key={job.id}
             href={job.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block p-4 border border-gray-200 rounded-xl shadow hover:bg-gray-50 transition"
+            className="block p-4 border bg-[#000000] border-gray-200 rounded-xl shadow hover:bg-[#171717] transition"
           >
             <h3 className="text-lg font-semibold">
               {job.title} @ {job.company}
@@ -110,13 +123,33 @@ export default function JobList() {
             ) : null}
 
             <p className="text-sm text-gray-600">{job.location}</p>
-            {/* <p className="text-sm text-gray-800 font-medium">
-              ${job.salary?.toLocaleString()}
-            </p> */}
-            {/* <p className="text-xs text-blue-500 mt-1">Contact: job.contact_email</p> */}
           </a>
         ))}
       </div>
+
+      {/* Show More Button */}
+      {userHasPaid && jobsToShow < filteredJobs.length && (
+        <div className="mt-4 text-center">
+          <button
+            onClick={handleShowMore}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+          >
+            Show More
+          </button>
+        </div>
+      )}
+
+      {/* Payment Button */}
+      {!userHasPaid && filteredJobs.length > 3 && (
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => router.push('/payment')} // Redirects to the payment page
+            className="px-6 py-2 bg-green-600 text-white rounded-md"
+          >
+            Go to Payment Page
+          </button>
+        </div>
+      )}
     </div>
   );
 }

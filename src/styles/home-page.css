@@ -1,24 +1,106 @@
 .background-base {
-  min-height: 1400px;
+  padding: var(--space--64) var(--space--96) var(--space--48);
+  border-radius: var(--radius--m);
+  flex-flow: row;
+  justify-content: center;
+  align-items: stretch;
   width: 100%;
-  position: absolute;
-  z-index: -1;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  background-image: black;
+}
+.p-6 {
+  padding: 0em; /* Adjust padding if needed */
+  position: relative;
+  top: 90px; /* Moves the search bar upwards on the page */
+  left: 50%;
+  transform: translateX(-50%); /* Centers the search bar horizontally */
+  width: 10000%; /* Makes the search bar wider */
+  max-width: 10000000px; /* Optional: Set a max-width for better control */
+}
+.bg-black {
+  background-color: hsl(58, 100%, 49.25%);
+}
+.gradient-text {
+  font-size: 48px;
+  line-height: 48px;
+  font-weight: 500;
+  letter-spacing: -1.6px;
+  background-image: linear-gradient(to top, #4c4c4c, #ffffff); /* Example gradient */
+  -webkit-background-clip: text; /* Clips the background to the text */
+  -webkit-text-fill-color: transparent; /* Makes the text fill transparent so the gradient is visible */
+  display: inline-block;
+}
+
+@media (min-width: 768px) {
+  .gradient-text {
+    font-size: 80px;
+    line-height: 80px;
+  }
+}
+.py-\[18px\] {
+  padding-block: 0px;
+}
+.bg-yellow-300 {
+  box-shadow:
+    0 4px 6px rgba(255, 223, 0, 0.6),
+    0 10px 20px rgba(255, 223, 0, 0.4);
+  border-width: 0.3px;
+  border-color: burlywood;
+}
+.text-white {
+  color: #000;
+}
+html,
+body {
+  height: 100%; /* Ensure the body takes up the full height of the viewport */
+  /* Remove any scrollbars */
+}
+.border {
+  border-style: var(--tw-border-style);
+  border-width: 0.3px;
+  border-color: burlywood;
+  /* Default box-shadow is commented out so it doesn't appear when not hovered */
+}
+
+.border:hover {
+  box-shadow:
+    0 4px 6px rgba(255, 223, 0, 0.6),
+    0 10px 20px rgba(255, 223, 0, 0.4);
+}
+.main-container {
+  width: 100%;
+  height: 100%;
+  max-width: 480px; /* Limiting width for a "phone-like" appearance */
+  background-color: #1d1717;
+  border-radius: 30px; /* Slightly smaller border radius for inner container */
 }
 /* Center content vertically and horizontally */
 .centered-content {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 200vh; /* Use 100% of the viewport height */
-  padding-left: 400px;
+  height: 100vh; /* Use 100% of the viewport height */
+  padding-left: 50px;
   padding-top: 0px; /* Optional padding to make it look more spaced */
 }
 
 .job-list-container {
   display: flex;
-  justify-content: center;
   align-items: center;
-  height: 30vh;
+  height: 10px;
+  padding: 400px;
+  padding-top: 1px;
+  /* padding-bottom: 10px; */
+  position: absolute;
+}
+
+/* Margin between title and search bar */
+
+.custom-input {
+  padding-left: calc(var(--spacing) * 70);
+  padding-right: calc(var(--spacing) * 30);
 }
 
 /* .grid-bg {

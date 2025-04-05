@@ -5,7 +5,7 @@ import { BillingFrequency, IBillingFrequency } from '@/constants/billing-frequen
 import { Environments, initializePaddle, Paddle } from '@paddle/paddle-js';
 import { usePaddlePrices } from '@/hooks/usePaddlePrices';
 
-interface Props {
+export interface Props {
   country: string;
 }
 
@@ -35,3 +35,4 @@ export function Pricing({ country }: Props) {
     </div>
   );
 }
+export default Pricing;
