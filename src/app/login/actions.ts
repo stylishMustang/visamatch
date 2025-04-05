@@ -8,8 +8,11 @@ interface FormData {
   email: string;
   password: string;
 }
+console.log('DATA:', FormData);
+
 export async function login(data: FormData) {
   const supabase = await createClient();
+
   const { error } = await supabase.auth.signInWithPassword(data);
 
   if (error) {

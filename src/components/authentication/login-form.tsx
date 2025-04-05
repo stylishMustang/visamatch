@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { AuthenticationForm } from '@/components/authentication/authentication-form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
+import { signup } from '@/app/signup/actions';
 
 export function LoginForm() {
   const { toast } = useToast();
@@ -49,9 +50,17 @@ export function LoginForm() {
         password={password}
         onPasswordChange={(password) => setPassword(password)}
       />
-      <Button formAction={() => handleLogin()} type={'submit'} variant={'secondary'} className={'w-full'}>
+      <Button onClick={handleLogin} type={'submit'} variant={'secondary'} className={'w-full'}>
         Log in
       </Button>
+      <button onClick={handleLogin}>login</button>
+      <button
+        formAction={() => {
+          signup;
+        }}
+      >
+        sign up 2
+      </button>
     </form>
   );
 }

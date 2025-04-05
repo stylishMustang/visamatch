@@ -21,14 +21,3 @@ export async function createClient() {
     },
   });
 }
-
-export async function validateUserSession() {
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    throw new Error('You are not allowed to perform this action.');
-  }
-}

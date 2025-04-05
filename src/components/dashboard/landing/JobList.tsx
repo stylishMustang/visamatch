@@ -74,10 +74,7 @@ export default function JobList() {
   };
 
   const handleRedirect = () => {
-    if (isClient && router) {
-      // Check if we are on the client side before using `router.push`
-      router.push('/payment');
-    }
+    router.push('/dashboard');
   };
 
   return (
