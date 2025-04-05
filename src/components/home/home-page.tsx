@@ -35,7 +35,7 @@ export function HomePage() {
         </div>
         {/* <Pricing country={country} /> */}
       </div>
-      <div className="footer mt-50">
+      <div className="footer mt-300">
         {' '}
         {/* Add margin-top to give space before footer */}
         <Footer />

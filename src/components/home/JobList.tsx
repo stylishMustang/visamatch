@@ -1,7 +1,8 @@
+'use client';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import router from 'next/router';
-
+import router from 'next/compat/router';
+import { useRouter } from 'next/navigation';
 type Job = {
   id: string;
   title: string;
@@ -14,6 +15,7 @@ type Job = {
 };
 
 export default function JobList() {
+  const router = useRouter();
   const supabase = createClient();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedVisa, setSelectedVisa] = useState<string | null>(null);
@@ -21,16 +23,26 @@ export default function JobList() {
   const [loading, setLoading] = useState(false);
   const [jobsToShow, setJobsToShow] = useState(3);
   const [userHasPaid, setUserHasPaid] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+    sessionStorage.removeItem('jobs'); // Clear cached jobs on page load or refresh
+  }, []);
 
   useEffect(() => {
     const fetchJobs = async () => {
+      setLoading(true); // Set loading to true while fetching jobs
       const { data, error } = await supabase.from('jobs').select('*');
-      if (error) console.error('Error fetching jobs:', error);
-      else setJobs(data || []);
+      if (error) {
+        console.error('Error fetching jobs:', error);
+      } else {
+        setJobs(data || []);
+      }
+      setLoading(false); // Set loading to false once jobs are fetched
     };
 
     fetchJobs();
-  }, []);
+  }, []); // Empty dependency array to run only once on page load
 
   const filteredJobs = selectedVisa ? jobs.filter((job) => job.visa_type === selectedVisa) : jobs;
 
@@ -46,8 +58,14 @@ export default function JobList() {
     console.log(result.message || result.error);
 
     // Refetch jobs from the database after inserting the new ones
-    const { data } = await supabase.from('jobs').select('*');
-    setJobs(data || []);
+    const { data, error } = await supabase.from('jobs').select('*');
+    if (error) {
+      console.error('Error fetching jobs:', error);
+    } else {
+      // Safely check if data is not null and prepend the jobs
+      setJobs((prevJobs) => (data ? [...data, ...prevJobs] : prevJobs));
+    }
+
     setLoading(false);
   };
 
@@ -55,101 +73,157 @@ export default function JobList() {
     setJobsToShow(jobsToShow + 10); // Add 10 more jobs when "Show More" is clicked
   };
 
+  const handleRedirect = () => {
+    if (isClient && router) {
+      // Check if we are on the client side before using `router.push`
+      router.push('/payment');
+    }
+  };
+
   return (
-    <div className="p-6">
-      <form onSubmit={handleSearch} className="mb-6">
-        <div className="flex items-center">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search job title e.g. frontend developer"
-            className="px-4 py-2 border rounded-md w-full max-w-md"
-          />
-          <button
-            type="submit"
-            className="ml-2 px-4 py-2 bg-yellow-300 text-white rounded-md hover:bg-yellow-400"
-            disabled={loading}
-          >
-            {loading ? 'Fetching...' : 'Search'}
-          </button>
+    <>
+      <div className="p-6">
+        <form onSubmit={handleSearch} className="mb-6">
+          <div className="sticky-header flex items-center sticky top-0 z-10 p-4">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search job title e.g. frontend developer"
+              className="px-4 py-2 border rounded-md w-full max-w-md"
+            />
+            <button
+              type="submit"
+              className="ml-2 px-4 py-2 bg-purple-300 text-white rounded-md hover:bg-purple-400"
+              disabled={loading}
+            >
+              {loading ? 'Fetching...' : 'Search'}
+            </button>
+          </div>
+        </form>
+        <div />
+        <h2 className="text-2xl font-bold mb-4">Visa-Sponsored Jobs</h2>
+
+        {/* Filter by Visa Type */}
+        <div className="sticky mb-4 bg-red-70">
+          <label htmlFor="visaFilter" className="block text-sm font-medium text-gray-700 mb-1">
+            Filter by Visa Type
+          </label>
+          <div className="flex flex-wrap gap-2 sticky top-1 p-4">
+            <button
+              onClick={() => setSelectedVisa(null)}
+              className={`px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md shadow-sm hover:bg-gray-300 hover:scale-105 transition-all duration-300 ease-in-out transform ${selectedVisa === null ? 'border-2 border-green-500 text-green-500' : ''}`}
+            >
+              All Visa Types
+            </button>
+            <button
+              onClick={() => setSelectedVisa('H-1B')}
+              className={`px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md shadow-sm hover:bg-gray-300 hover:scale-105 transition-all duration-300 ease-in-out transform ${selectedVisa === 'H-1B' ? 'border-2 border-green-500 text-green-500' : ''}`}
+            >
+              🌎 H-1B
+            </button>
+            <button
+              onClick={() => setSelectedVisa('Green Card')}
+              className={`px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md shadow-sm hover:bg-gray-300 hover:scale-105 transition-all duration-300 ease-in-out transform ${selectedVisa === 'Green Card' ? 'border-2 border-green-500 text-green-500' : ''}`}
+            >
+              🟢 Green Card
+            </button>
+            <button
+              onClick={() => setSelectedVisa('E-3')}
+              className={`px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md shadow-sm hover:bg-gray-300 hover:scale-105 transition-all duration-300 ease-in-out transform ${selectedVisa === 'E-3' ? 'border-2 border-green-500 text-green-500' : ''}`}
+            >
+              🇦🇺 E-3
+            </button>
+            <button
+              onClick={() => setSelectedVisa('TN')}
+              className={`px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md shadow-sm hover:bg-gray-300 hover:scale-105 transition-all duration-300 ease-in-out transform ${selectedVisa === 'TN' ? 'border-2 border-green-500 text-green-500' : ''}`}
+            >
+              🇨🇦/🇲🇽 TN
+            </button>
+            <button
+              onClick={() => setSelectedVisa('H-1B1 Chile')}
+              className={`px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md shadow-sm hover:bg-gray-300 hover:scale-105 transition-all duration-300 ease-in-out transform ${selectedVisa === 'H-1B1 Chile' ? 'border-2 border-green-500 text-green-500' : ''}`}
+            >
+              🇨🇱 H-1B1
+            </button>
+            <button
+              onClick={() => setSelectedVisa('H-1B1 Singapore')}
+              className={`px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md shadow-sm hover:bg-gray-300 hover:scale-105 transition-all duration-300 ease-in-out transform ${selectedVisa === 'H-1B1 Singapore' ? 'border-2 border-green-500 text-green-500' : ''}`}
+            >
+              🇸🇬 H-1B1
+            </button>
+            <button
+              onClick={() => setSelectedVisa('OPT')}
+              className={`px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md shadow-sm hover:bg-gray-300 hover:scale-105 transition-all duration-300 ease-in-out transform ${selectedVisa === 'OPT' ? 'border-2 border-green-500 text-green-500' : ''}`}
+            >
+              🎓 OPT
+            </button>
+            <button
+              onClick={() => setSelectedVisa('CPT')}
+              className={`px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md shadow-sm hover:bg-gray-300 hover:scale-105 transition-all duration-300 ease-in-out transform ${selectedVisa === 'CPT' ? 'border-2 border-green-500 text-green-500' : ''}`}
+            >
+              📚 CPT
+            </button>
+            <button
+              onClick={() => setSelectedVisa('J-1')}
+              className={`px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md shadow-sm hover:bg-gray-300 hover:scale-105 transition-all duration-300 ease-in-out transform ${selectedVisa === 'J-1' ? 'border-2 border-green-500 text-green-500' : ''}`}
+            >
+              📝 J-1
+            </button>
+          </div>
         </div>
-      </form>
-
-      <h2 className="text-2xl font-bold mb-4">Visa-Sponsored Jobs</h2>
-
-      {/* Filter by Visa Type */}
-      <div className="mb-4 bg-red-70">
-        <label htmlFor="visaFilter" className="block text-sm font-medium text-gray-700 mb-1">
-          Filter by Visa Type
-        </label>
-        <select
-          id="visaFilter"
-          onChange={(e) => setSelectedVisa(e.target.value || null)}
-          className="border border-gray-300 rounded-md px-3 py-2 w-full max-w-sm"
-        >
-          <option value="">All Visa Types</option>
-          <option value="H-1B">🌎 H-1B</option>
-          <option value="Green Card">🟢 Green Card</option>
-          <option value="E-3">🇦🇺 E-3</option>
-          <option value="TN">🇨🇦/🇲🇽 TN</option>
-          <option value="H-1B1 Chile">🇨🇱 H-1B1</option>
-          <option value="H-1B1 Singapore">🇸🇬 H-1B1</option>
-          <option value="OPT">🎓 OPT</option>
-          <option value="CPT">📚 CPT</option>
-          <option value="J-1">📝 J-1</option>
-        </select>
       </div>
-
       {/* Display jobs */}
-      <div className="space-y-4">
-        {filteredJobs.slice(0, jobsToShow).map((job) => (
-          <a
-            key={job.id}
-            href={job.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block p-4 border bg-[#000000] border-gray-200 rounded-xl shadow hover:bg-[#171717] transition"
-          >
-            <h3 className="text-lg font-semibold">
-              {job.title} @ {job.company}
-            </h3>
+      <div className="p-7">
+        <div className="space-y-4">
+          {filteredJobs.slice(0, jobsToShow).map((job) => (
+            <a
+              key={job.id}
+              href={job.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block p-4 border bg-[#000000] border-gray-200 rounded-xl shadow hover:bg-[#171717] transition"
+            >
+              <h3 className="text-lg font-semibold">
+                {job.title} @ {job.company}
+              </h3>
 
-            {/* ✅ Visa Sponsor Tag */}
-            {job.visa_verified ? (
-              <span className="inline-block text-green-600 text-xs font-semibold">✅ {job.visa_type} Sponsor</span>
-            ) : job.visa_type === 'OPT' ? (
-              <span className="inline-block text-yellow-500 text-xs font-semibold">🎓 OPT Eligible</span>
-            ) : null}
+              {/* ✅ Visa Sponsor Tag */}
+              {job.visa_verified ? (
+                <span className="inline-block text-green-600 text-xs font-semibold">✅ {job.visa_type} Sponsor</span>
+              ) : job.visa_type === 'OPT' ? (
+                <span className="inline-block text-yellow-500 text-xs font-semibold">🎓 OPT Eligible</span>
+              ) : null}
 
-            <p className="text-sm text-gray-600">{job.location}</p>
-          </a>
-        ))}
+              <p className="text-sm text-gray-600">{job.location}</p>
+            </a>
+          ))}
+        </div>
+
+        {/* Show More Button */}
+        {userHasPaid && jobsToShow < filteredJobs.length && (
+          <div className="mt-4 text-center">
+            <button
+              onClick={handleShowMore}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+            >
+              Show More
+            </button>
+          </div>
+        )}
+
+        {/* Payment Button */}
+        {!userHasPaid && filteredJobs.length > 3 && (
+          <div className="mt-4 text-center">
+            <button
+              onClick={handleRedirect} // Correctly calls the handleRedirect function
+              className="px-6 py-2 bg-green-600 text-white rounded-md"
+            >
+              Go to Payment Page
+            </button>
+          </div>
+        )}
       </div>
-
-      {/* Show More Button */}
-      {userHasPaid && jobsToShow < filteredJobs.length && (
-        <div className="mt-4 text-center">
-          <button
-            onClick={handleShowMore}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-          >
-            Show More
-          </button>
-        </div>
-      )}
-
-      {/* Payment Button */}
-      {!userHasPaid && filteredJobs.length > 3 && (
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => router.push('/payment')} // Redirects to the payment page
-            className="px-6 py-2 bg-green-600 text-white rounded-md"
-          >
-            Go to Payment Page
-          </button>
-        </div>
-      )}
-    </div>
+    </>
   );
 }
