@@ -74,7 +74,7 @@ export default function JobList() {
   };
 
   const handleRedirect = () => {
-    router.push('/dashboard');
+    router.push('/newPage');
   };
 
   return (

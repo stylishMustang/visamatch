@@ -1,5 +1,5 @@
 import { DashboardPageHeader } from '@/components/dashboard/layout/dashboard-page-header';
-import { DashboardLandingPage } from '@/components/dashboard/landing/dashboard-landing-page';
+import { DashboardLandingPage } from '@/app/LandingPage/dashboard-landing-page';
 
 export default function LandingPage() {
   return (
