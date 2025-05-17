@@ -1,41 +1,41 @@
-import { SuccessPageGradients } from '@/components/gradients/success-page-gradients';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button';
+'use client';
+
+import React from 'react';
 import Link from 'next/link';
-import { PoweredByPaddle } from '@/components/home/footer/powered-by-paddle';
-import '../../../styles/checkout.css';
-import { createClient } from '@/utils/supabase/server';
 
-export default async function SuccessPage() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-
+export default function CheckoutSuccessPage() {
   return (
-    <main>
-      <div className={'relative h-screen overflow-hidden'}>
-        <SuccessPageGradients />
-        <div className={'absolute inset-0 px-6 flex items-center justify-center'}>
-          <div className={'flex flex-col items-center text-white text-center'}>
-            <Image
-              className={'pb-12'}
-              src={'/assets/icons/logo/aeroedit-success-icon.svg'}
-              alt={'Success icon'}
-              height={96}
-              width={96}
-            />
-            <h1 className={'text-4xl md:text-[80px] leading-9 md:leading-[80px] font-medium pb-6'}>
-              Payment successful
-            </h1>
-            <p className={'text-lg pb-16'}>Success! Your payment is complete, and you’re all set.</p>
-            <Button variant={'secondary'} asChild={true}>
-              {data.user ? <Link href={'/dashboard'}>Go to Dashboard</Link> : <Link href={'/'}>Go to Home</Link>}
-            </Button>
-          </div>
-        </div>
-        <div className={'absolute bottom-0 w-full'}>
-          <PoweredByPaddle />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4 text-center">
+      <div className="bg-white p-8 md:p-12 rounded-lg shadow-xl w-full max-w-lg">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-16 w-16 text-green-500 mx-auto mb-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Payment Successful!</h1>
+        <p className="text-gray-600 mb-8 text-lg">
+          Thank you for your purchase. Your access to more job listings should now be unlocked.
+        </p>
+        <div className="space-y-4">
+          <Link href="/" legacyBehavior>
+            <a className="w-full block px-6 py-3 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-150 ease-in-out text-lg">
+              Back to Job Listings
+            </a>
+          </Link>
+          {/* You could add a link to a user dashboard or orders page if applicable */}
+          {/* <Link href="/dashboard/payments" legacyBehavior>
+            <a className="w-full block px-6 py-3 rounded-md font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors duration-150 ease-in-out text-lg">
+              View Payment History
+            </a>
+          </Link> */}
         </div>
       </div>
-    </main>
+      <p className="mt-8 text-xs text-gray-500">If you have any questions, please contact support.</p>
+    </div>
   );
 }

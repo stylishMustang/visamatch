@@ -1,116 +1,220 @@
 'use client';
+
 import { useEffect, useState } from 'react';
-// refer to https://developer.paddle.com/paddlejs/methods/paddle-checkout-open
-// Define Paddle type to fix TypeScript errors
+import { initializePaddle, Environments, Paddle } from '@paddle/paddle-js';
+import React from 'react';
+
+// Define the structure of your items for type safety
+interface CheckoutItem {
+  priceId: string;
+  quantity: number;
+}
 
 export default function NewPage() {
+  const [paddle, setPaddle] = useState<Paddle | null>(null);
   const [isPaddleLoaded, setIsPaddleLoaded] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-
-  // Your Paddle vendor ID should be a number
-  const PADDLE_VENDOR_ID = 222999; // Replace with your actual vendor ID
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if Paddle is already loaded
-    if (window.Paddle) {
-      initializePaddle();
+    const clientToken = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
+    const environment = process.env.NEXT_PUBLIC_PADDLE_ENV as Environments;
+
+    if (!clientToken) {
+      const errMsg =
+        'Paddle Client Token (NEXT_PUBLIC_PADDLE_CLIENT_TOKEN) is not set. Please check your environment variables.';
+      console.error(errMsg);
+      setError(errMsg);
+      return;
+    }
+    if (!environment || !['sandbox', 'production'].includes(environment)) {
+      const errMsg =
+        'Paddle Environment (NEXT_PUBLIC_PADDLE_ENV) is not set or invalid (must be "sandbox" or "production"). Please check your environment variables.';
+      console.error(errMsg);
+      setError(errMsg);
       return;
     }
 
-    // Dynamically load Paddle.js
-    const script = document.createElement('script');
-    script.src = 'https://cdn.paddle.com/paddle/paddle.js';
-    script.async = true;
+    console.log('Attempting to initialize Paddle SDK...');
+    setError(null); // Clear previous errors
 
-    script.onload = () => {
-      initializePaddle();
-    };
-
-    // Append the script tag to the document head
-    document.head.appendChild(script);
-
-    // Cleanup the script after component unmounts
-    return () => {
-      // Only remove if it's the script we added
-      const paddleScript = document.querySelector('script[src*="paddle.com"]');
-      if (paddleScript && paddleScript.parentNode) {
-        paddleScript.parentNode.removeChild(paddleScript);
-      }
-    };
-  }, []);
-
-  // Initialize Paddle with proper error checking
-  const initializePaddle = () => {
-    if (typeof window !== 'undefined' && window.Paddle) {
-      try {
-        // For Paddle Classic, use Paddle.Setup with vendor ID
-        window.Paddle.Initialize({
-          token: 'live_9606674b1ce6876277fe92ee313',
-          eventCallback: (data: any) => {
-            console.log('Paddle event:', data);
-            if (data.event === 'Checkout.Close') {
-              setIsProcessing(false);
+    initializePaddle({
+      token: clientToken,
+      environment: environment,
+      checkout: {
+        settings: {
+          displayMode: 'overlay',
+          theme: 'light',
+          successUrl: '/checkout/success', // IMPORTANT: Create this page or change URL
+          // locale: 'en', // Optional: set a specific locale
+          // allowedPaymentMethods: ['card', 'paypal'], // Optional: specify allowed methods
+        },
+      },
+      eventCallback: (data: any) => {
+        console.log('Paddle Event:', data);
+        switch (data.name) {
+          case 'checkout.loaded':
+            console.log('Checkout UI has loaded.');
+            break;
+          case 'checkout.closed':
+            console.log('Checkout was closed by the user.');
+            setIsProcessing(false);
+            break;
+          case 'checkout.completed':
+            console.log('Checkout completed successfully! Transaction ID:', data.data?.transaction_id);
+            // Paddle will redirect to successUrl if set.
+            // You can add other client-side logic here if needed,
+            // e.g., updating UI, clearing cart, etc.
+            setIsProcessing(false);
+            // Potentially redirect programmatically if successUrl isn't reliable or for other reasons
+            // router.push('/checkout/success');
+            break;
+          case 'checkout.payment_failed':
+            // More specific type assertion for payment_failed event data
+            interface PaymentFailedEventData {
+              error?: {
+                type?: string;
+                code?: string;
+                detail?: string;
+                help_url?: string;
+              };
+              // other properties that might exist on data.data for this event
             }
-          },
-        });
-        setIsPaddleLoaded(true);
-        console.log('Paddle Classic initialized successfully');
-      } catch (error) {
-        console.error('Error initializing Paddle:', error);
-      }
-    }
-  };
+            const eventData = data.data as PaymentFailedEventData | undefined;
+            console.error('Checkout payment failed:', eventData?.error);
+            setError(`Payment failed: ${eventData?.error?.detail || 'Unknown payment error. Check console.'}`);
+            setIsProcessing(false);
+            break;
+          // You can add more event handlers here if needed
+        }
+      },
+    })
+      .then((paddleInstance) => {
+        if (paddleInstance) {
+          setPaddle(paddleInstance);
+          setIsPaddleLoaded(true);
+          console.log('Paddle SDK initialized successfully.');
+        } else {
+          const errMsg = 'Paddle initialization resolved but paddleInstance is null or undefined.';
+          console.error(errMsg);
+          setError(errMsg);
+        }
+      })
+      .catch((initError) => {
+        console.error('Failed to initialize Paddle SDK:', initError);
+        setError(`Failed to initialize Paddle SDK: ${initError.message || 'Unknown error'}`);
+      });
 
-  const handleCheckout = () => {
-    if (!isPaddleLoaded || isProcessing) {
-      console.log('Paddle not loaded or processing already in progress');
+    // No specific cleanup needed for Paddle.js v2 initialization
+  }, []); // Empty dependency array ensures this runs once on mount
+
+  const handleCheckout = async () => {
+    if (!paddle || !isPaddleLoaded) {
+      const warnMsg = 'Paddle SDK is not loaded or initialized yet. Please wait or check console for errors.';
+      console.warn(warnMsg);
+      setError(warnMsg); // Show feedback to user
+      return;
+    }
+    if (isProcessing) {
+      console.warn('Checkout is already in progress.');
       return;
     }
 
     setIsProcessing(true);
-    const items = [
+    setError(null); // Clear previous errors
+    console.log('Opening Paddle Checkout...');
+
+    const checkoutItems: CheckoutItem[] = [
       {
-        priceId: 'pri_01jthq77the6v5w6svppa4e1pr',
+        // Ensure this is your ACTUAL PADDLE SANDBOX PRICE ID
+        priceId: 'pri_01jtm9agb3t9wcymyr8rb2p1jp',
         quantity: 1,
       },
     ];
 
     try {
-      if (typeof window !== 'undefined' && window.Paddle && window.Paddle.Checkout) {
-        // For Paddle Classic, we use product IDs not price IDs
-        window.Paddle.Checkout.open({
-          items: items,
-          settings: {
-            displayMode: 'overlay',
-            variant: 'one-page',
-          }, // Replace with your actual product ID
-          // Optional custom data
-        });
-      } else {
-        throw new Error('Paddle SDK not fully loaded');
-      }
-    } catch (error) {
-      console.error('Error opening Paddle checkout:', error);
+      paddle.Checkout.open({
+        items: checkoutItems,
+        // You can also pass customer data if available
+        // customer: { email: 'customer@example.com' },
+        // customData: { userId: 'your-internal-user-id' }, // Optional
+      });
+      // For 'overlay' mode, .open() is non-blocking.
+      // Event callback and successUrl handle the flow.
+    } catch (checkoutError: any) {
+      console.error('Error trying to open Paddle Checkout:', checkoutError);
+      setError(`Error opening checkout: ${checkoutError.message || 'Unknown error'}`);
       setIsProcessing(false);
     }
   };
 
+  let buttonText = 'Malak to Payment';
+  if (error) {
+    buttonText = 'Error Initializing Payment';
+  } else if (!isPaddleLoaded) {
+    buttonText = 'Initializing Payment...';
+  } else if (isProcessing) {
+    buttonText = 'Processing...';
+  }
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-4">
-      <h1 className="text-3xl font-bold mb-4">Payment Page</h1>
+    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-4 bg-gray-50">
+      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md text-center">
+        <h1 className="text-3xl font-bold mb-8 text-gray-800">Complete Your Purchase</h1>
 
-      <button
-        onClick={handleCheckout}
-        disabled={!isPaddleLoaded || isProcessing}
-        className={`px-6 py-3 rounded-md ${
-          !isPaddleLoaded || isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
-        } text-white transition-colors`}
-      >
-        {isProcessing ? 'Processing...' : 'Proceed to Payment'}
-      </button>
+        {/* You can add product details here if needed */}
+        <div className="mb-8 p-4 border border-gray-200 rounded-md bg-gray-50">
+          <p className="text-lg font-semibold text-gray-700">Unlock Full Job Access</p>
+          <p className="text-2xl text-blue-600 font-bold mt-1">One-Time Payment</p>
+        </div>
 
-      {/* This container is for inline mode if you decide to use it */}
-      <div id="checkout-container" className="w-full max-w-lg"></div>
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 border border-red-300 rounded-md text-sm">
+            <p className="font-semibold">Payment System Error:</p>
+            <p>{error}</p>
+            {error.includes('NEXT_PUBLIC_PADDLE_CLIENT_TOKEN') && (
+              <p>
+                Please ensure it is set in your <code>.env.local</code> file.
+              </p>
+            )}
+            {error.includes('priceId') && (
+              <p>
+                Update the <code>priceId</code> in <code>src/app/newPage/page.tsx</code>.
+              </p>
+            )}
+          </div>
+        )}
+
+        <button
+          onClick={handleCheckout}
+          disabled={!isPaddleLoaded || isProcessing || !!error}
+          className={`w-full px-8 py-4 rounded-lg font-semibold text-white text-lg transition-all duration-150 ease-in-out focus:outline-none focus:ring-4
+            ${
+              !isPaddleLoaded || isProcessing || !!error
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-green-600 hover:bg-green-700 focus:ring-green-300 active:bg-green-800'
+            }
+          `}
+        >
+          {buttonText}
+        </button>
+
+        {!isPaddleLoaded && !error && (
+          <p className="mt-6 text-sm text-gray-500 animate-pulse">Connecting to payment gateway...</p>
+        )}
+
+        <p className="mt-8 text-xs text-gray-400">
+          Powered by{' '}
+          <a
+            href="https://paddle.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-gray-600"
+          >
+            Paddle
+          </a>
+        </p>
+      </div>
     </div>
   );
 }

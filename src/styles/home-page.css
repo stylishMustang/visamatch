@@ -32,9 +32,12 @@
   width: 570px; /* Makes the search bar wider */
   max-width: 10000000px; /* Optional: Set a max-width for better control */
 }
+
+/*
 .bg-black {
   background-color: hsl(58, 100%, 49.25%);
 }
+*/
 .gradient-text {
   font-size: 48px;
   line-height: 48px;
@@ -86,9 +89,12 @@ body {
 
 .border:hover {
   box-shadow:
-    0 4px 6px rgba(188, 65, 254, 0.6),
-    0 10px 20px rgba(178, 66, 209, 0.4);
-  border-color: rgb(124, 41, 147);
+    0 4px 6px rgba(255, 255, 255, 0.6),
+    0 10px 20px rgba(188, 183, 189, 0.4);
+  border-color: rgb(105, 103, 105);
+  -webkit-box-shadow: 3.5px 4.5px 8px -6.5px #dddddd;
+  -moz-box-shadow: 3.5px 4.5px 8px -6.5px #dddddd;
+  box-shadow: 3.5px 4.5px 8px -6.5px #dddddd;
 }
 .main-container {
   width: 100%;

@@ -4,6 +4,7 @@ import '../styles/layout.css';
 import { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import { Toaster } from '@/components/ui/toaster';
+import WaitlistPopup from '@/components/shared/WaitlistPopup';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -24,6 +25,7 @@ export default function RootLayout({
       <body className={inter.className}>
         {children}
         <Toaster />
+        <WaitlistPopup />
       </body>
     </html>
   );
