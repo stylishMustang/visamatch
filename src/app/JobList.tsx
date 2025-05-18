@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import router from 'next/compat/router';
 import { useRouter } from 'next/navigation';
 type Job = {
   id: string;
@@ -22,10 +21,9 @@ export default function JobList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [jobsToShow, setJobsToShow] = useState(3);
-  const [userHasPaid, setUserHasPaid] = useState(false);
-  const [isClient, setIsClient] = useState(false);
+  const [userHasPaid, _setUserHasPaid] = useState(false);
+
   useEffect(() => {
-    setIsClient(true);
     sessionStorage.removeItem('jobs'); // Clear cached jobs on page load or refresh
   }, []);
 
@@ -42,7 +40,7 @@ export default function JobList() {
     };
 
     fetchJobs();
-  }, []); // Empty dependency array to run only once on page load
+  }, [supabase]);
 
   const filteredJobs = selectedVisa ? jobs.filter((job) => job.visa_type === selectedVisa) : jobs;
 

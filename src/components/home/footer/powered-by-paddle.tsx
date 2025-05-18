@@ -1,4 +1,4 @@
-import Image from 'next/image';
+// import Image from 'next/image'; // Removed unused import
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { ArrowUpRight } from 'lucide-react';

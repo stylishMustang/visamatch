@@ -18,7 +18,7 @@ interface Props {
 }
 
 export function CheckoutContents({ userEmail }: Props) {
-  const { priceId } = useParams<PathParams>();
+  const { priceId } = (useParams<PathParams>() ?? {}) as PathParams;
   const [quantity, setQuantity] = useState<number>(1);
   const [paddle, setPaddle] = useState<Paddle | null>(null);
   const [checkoutData, setCheckoutData] = useState<CheckoutEventsData | null>(null);
@@ -31,6 +31,7 @@ export function CheckoutContents({ userEmail }: Props) {
     throttle((paddle: Paddle, priceId: string, quantity: number) => {
       paddle.Checkout.updateItems([{ priceId, quantity }]);
     }, 1000),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 

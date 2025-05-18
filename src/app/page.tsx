@@ -8,18 +8,15 @@ import '@/styles/home-page.css';
 import { LocalizationBanner } from '@/components/home/header/localization-banner';
 import Header from '@/components/home/header/header';
 import { HeroSection } from '@/components/home/hero-section/hero-section';
-import { Pricing } from '@/components/home/header/Pricing';
 import { HomePageBackground } from '@/components/gradients/home-page-background';
 import { Footer } from '@/components/home/footer/footer';
 import JobList from './JobList';
-import { useRouter } from 'next/navigation';
 import { logout } from '@/app/logout/actions';
 
 export default function HomePage() {
   const supabase = createClient();
   const { user } = useUserInfo(supabase);
   const [country, setCountry] = useState('US');
-  const router = useRouter();
 
   return (
     <div className="min-h-screen flex flex-col">

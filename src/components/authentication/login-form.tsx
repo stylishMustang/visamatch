@@ -54,13 +54,13 @@ export function LoginForm() {
         Log in
       </Button>
       <button onClick={handleLogin}>login</button>
-      <button
+      {/* <button
         formAction={() => {
-          signup;
+          signup; 
         }}
       >
         sign up 2
-      </button>
+      </button> */}
     </form>
   );
 }

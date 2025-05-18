@@ -14,10 +14,12 @@ export default function WaitlistPopup() {
     }
   }, []);
 
+  /* // Commented out as handleClose is not used
   const handleClose = () => {
     setIsOpen(false);
     localStorage.setItem(LOCAL_STORAGE_KEY_WAITLIST_IFRAME_CLOSED, 'true');
   };
+  */
 
   if (!isOpen) {
     return null;

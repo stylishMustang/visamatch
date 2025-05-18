@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 interface Props {
   user: User | null;
 }
-const countryValue: string = 'USA';
 export default function Header({ user }: Props) {
   return (
     <nav>
