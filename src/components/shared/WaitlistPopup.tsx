@@ -26,13 +26,13 @@ export default function WaitlistPopup() {
   return (
     <div className="fixed inset-0 backdrop-blur-lg flex items-center justify-center z-[1000] p-4 transition-opacity duration-300 ease-in-out">
       <div className="glassmorphic-popup-card transform transition-all duration-300 ease-in-out scale-100">
-        <button
+        {/* <button
           onClick={handleClose}
           className="absolute top-3 right-3 text-white text-opacity-70 hover:text-opacity-100 text-3xl leading-none hover:bg-white hover:bg-opacity-10 rounded-full p-1 z-10 transition-colors"
           aria-label="Close popup"
-        >
+        >                                       
           &times;
-        </button>
+        </button> */}
 
         <div className="text-center mb-6">
           <h2 className="text-4xl font-bold mb-2 font-cabin text-gradient-white-to-custom">
