@@ -54,33 +54,31 @@ export default function NewPage() {
         console.log('Paddle Event:', event);
         if (!event || !event.name) return; // Guard against undefined event or name
 
-        switch (event.name) {
-          case 'checkout.loaded':
-            console.log('Checkout UI has loaded.');
-            break;
-          case 'checkout.closed':
-            console.log('Checkout was closed by the user.');
-            setIsProcessing(false);
-            break;
-          case 'checkout.completed':
-            const completedData = event.data as { transaction_id?: string };
-            if (completedData && typeof completedData.transaction_id === 'string') {
-              console.log('Checkout completed successfully! Transaction ID:', completedData.transaction_id);
-            }
-            setIsProcessing(false);
-            break;
-          case 'checkout.payment_failed':
-            const paymentFailedData = event.data as { error?: { detail?: string } };
-            let errorMessage = 'Unknown payment error. Check console.';
-            if (paymentFailedData?.error && typeof paymentFailedData.error.detail === 'string') {
-              errorMessage = paymentFailedData.error.detail;
-            }
-            console.error('Checkout payment failed:', paymentFailedData);
-            setError(`Payment failed: ${errorMessage}`);
-            setIsProcessing(false);
-            break;
-          // You can add more event handlers here if needed
+        // Refactored switch to if/else if to avoid type comparison issues
+        const eventName = event.name as string; // Cast event.name to string for comparison
+
+        if (eventName === 'checkout.loaded') {
+          console.log('Checkout UI has loaded.');
+        } else if (eventName === 'checkout.closed') {
+          console.log('Checkout was closed by the user.');
+          setIsProcessing(false);
+        } else if (eventName === 'checkout.completed') {
+          const completedData = event.data as { transaction_id?: string };
+          if (completedData && typeof completedData.transaction_id === 'string') {
+            console.log('Checkout completed successfully! Transaction ID:', completedData.transaction_id);
+          }
+          setIsProcessing(false);
+        } else if (eventName === 'checkout.payment_failed') {
+          const paymentFailedData = event.data as { error?: { detail?: string } };
+          let errorMessage = 'Unknown payment error. Check console.';
+          if (paymentFailedData?.error && typeof paymentFailedData.error.detail === 'string') {
+            errorMessage = paymentFailedData.error.detail;
+          }
+          console.error('Checkout payment failed:', paymentFailedData);
+          setError(`Payment failed: ${errorMessage}`);
+          setIsProcessing(false);
         }
+        // Add more else if blocks for other event handlers here if needed
       },
     })
       .then((paddleInstance) => {
