@@ -1,7 +1,29 @@
 // lib/jobSync.ts
 import 'dotenv/config';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, PostgrestResponse } from '@supabase/supabase-js';
 import fetch from 'node-fetch';
+
+// Define interfaces for better type safety
+interface JSearchJob {
+  employer_name: string;
+  job_title: string;
+  job_city: string | null;
+  job_country: string | null;
+  job_apply_link: string | null;
+  // Add other relevant properties from JSearch API if needed
+}
+
+interface JSearchResponse {
+  data?: JSearchJob[];
+  // Add other response properties if they exist
+}
+
+interface Sponsor {
+  employer_name: string;
+  case_status: string;
+  visa_class: string;
+  // Add other relevant properties from visa_sponsors table
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -26,14 +48,14 @@ function normalizeName(name: string | null | undefined): string {
     .trim();
 }
 
-async function fetchSponsors() {
-  const { data, error } = await supabase.from('visa_sponsors').select('*');
+async function fetchSponsors(): Promise<Sponsor[]> {
+  const { data, error }: PostgrestResponse<Sponsor> = await supabase.from('visa_sponsors').select('*');
   if (error) throw new Error('Failed to fetch visa_sponsors: ' + error.message);
   return data || [];
 }
 
-async function fetchJobsFromJSearch(role: string) {
-  const allJobs: any[] = [];
+async function fetchJobsFromJSearch(role: string): Promise<JSearchJob[]> {
+  const allJobs: JSearchJob[] = [];
   for (let i = 1; i <= PAGES; i++) {
     const res = await fetch(
       `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(role)}&page=${i}&num_pages=1&location=${encodeURIComponent(LOCATION)}`,
@@ -44,8 +66,10 @@ async function fetchJobsFromJSearch(role: string) {
         },
       },
     );
-    const json: any = await res.json();
-    allJobs.push(...(json.data || []));
+    const jsonResponse: JSearchResponse = (await res.json()) as JSearchResponse;
+    if (jsonResponse.data) {
+      allJobs.push(...jsonResponse.data);
+    }
   }
   return allJobs;
 }
@@ -67,7 +91,7 @@ export async function matchAndInsertJobs(role: string) {
   for (const job of jobs) {
     const normalizedCompany = normalizeName(job.employer_name);
     const sponsorMatch = sponsors.find(
-      (s: any) =>
+      (s: Sponsor) =>
         (normalizeName(s.employer_name).includes(normalizedCompany) ||
           normalizedCompany.includes(normalizeName(s.employer_name))) &&
         s.case_status.toLowerCase().includes('certified'),
@@ -93,7 +117,7 @@ export async function matchAndInsertJobs(role: string) {
         console.error(`❌ Failed to insert job: ${job.job_title} @ ${job.employer_name}`, error);
       } else {
         console.log(
-          `✅ Inserted: ${job.job_title} @ ${job.employer_name} ${job.url}→ ${visa_verified ? visa_type : '🎓 OPT fallback'}`,
+          `✅ Inserted: ${job.job_title} @ ${job.employer_name} ${job.job_apply_link || 'N/A'}→ ${visa_verified ? visa_type : '🎓 OPT fallback'}`,
         );
       }
     } catch (err) {

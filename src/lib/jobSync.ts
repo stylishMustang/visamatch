@@ -1,6 +1,25 @@
 import 'dotenv/config';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, PostgrestResponse } from '@supabase/supabase-js';
 import fetch from 'node-fetch'; // Import fetch with 'import' syntax
+
+// Define interfaces for better type safety (same as in fetchAndInsertJobs.ts)
+interface JSearchJob {
+  employer_name: string;
+  job_title: string;
+  job_city: string | null;
+  job_country: string | null;
+  job_apply_link: string | null;
+}
+
+interface JSearchResponse {
+  data?: JSearchJob[];
+}
+
+interface Sponsor {
+  employer_name: string;
+  case_status: string;
+  visa_class: string;
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -25,14 +44,14 @@ function normalizeName(name: string | null | undefined): string {
     .trim();
 }
 
-async function fetchSponsors() {
-  const { data, error } = await supabase.from('visa_sponsors').select('*');
+async function fetchSponsors(): Promise<Sponsor[]> {
+  const { data, error }: PostgrestResponse<Sponsor> = await supabase.from('visa_sponsors').select('*');
   if (error) throw new Error('Failed to fetch visa_sponsors: ' + error.message);
   return data || [];
 }
 
-async function fetchJobsFromJSearch(role: string) {
-  const allJobs: any[] = [];
+async function fetchJobsFromJSearch(role: string): Promise<JSearchJob[]> {
+  const allJobs: JSearchJob[] = [];
   for (let i = 1; i <= PAGES; i++) {
     const res = await fetch(
       `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(role)}&page=${i}&num_pages=1&location=${encodeURIComponent(LOCATION)}`,
@@ -43,8 +62,10 @@ async function fetchJobsFromJSearch(role: string) {
         },
       },
     );
-    const json: any = await res.json();
-    allJobs.push(...(json.data || []));
+    const jsonResponse: JSearchResponse = (await res.json()) as JSearchResponse;
+    if (jsonResponse.data) {
+      allJobs.push(...jsonResponse.data);
+    }
   }
   return allJobs;
 }
@@ -66,7 +87,7 @@ export async function matchAndInsertJobs(role: string) {
   for (const job of jobs) {
     const normalizedCompany = normalizeName(job.employer_name);
     const sponsorMatch = sponsors.find(
-      (s: any) =>
+      (s: Sponsor) =>
         (normalizeName(s.employer_name).includes(normalizedCompany) ||
           normalizedCompany.includes(normalizeName(s.employer_name))) &&
         s.case_status.toLowerCase().includes('certified'),

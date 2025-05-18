@@ -6,7 +6,7 @@ import { type Environments, initializePaddle, type Paddle } from '@paddle/paddle
 import type { CheckoutEventsData } from '@paddle/paddle-js/types/checkout/events';
 import throttle from 'lodash.throttle';
 import { useParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 
 interface PathParams {
   priceId: string;
@@ -27,12 +27,23 @@ export function CheckoutContents({ userEmail }: Props) {
     setCheckoutData(event);
   };
 
+  // Memoize the throttled function
+  const throttledUpdateItems = useMemo(
+    () =>
+      throttle((paddleInstance: Paddle, priceIdValue: string, quantityValue: number) => {
+        if (paddleInstance) {
+          paddleInstance.Checkout.updateItems([{ priceId: priceIdValue, quantity: quantityValue }]);
+        }
+      }, 1000),
+    [], // throttle itself doesn't change, so no dependencies here
+  );
+
+  // useCallback now depends on the memoized throttled function
   const updateItems = useCallback(
-    throttle((paddle: Paddle, priceId: string, quantity: number) => {
-      paddle.Checkout.updateItems([{ priceId, quantity }]);
-    }, 1000),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    (paddleInstance: Paddle, priceIdValue: string, quantityValue: number) => {
+      throttledUpdateItems(paddleInstance, priceIdValue, quantityValue);
+    },
+    [throttledUpdateItems], // Dependency is the memoized function
   );
 
   useEffect(() => {

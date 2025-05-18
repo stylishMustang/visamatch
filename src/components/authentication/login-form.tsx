@@ -7,7 +7,6 @@ import { useState } from 'react';
 import { AuthenticationForm } from '@/components/authentication/authentication-form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
-import { signup } from '@/app/signup/actions';
 
 export function LoginForm() {
   const { toast } = useToast();
@@ -54,13 +53,6 @@ export function LoginForm() {
         Log in
       </Button>
       <button onClick={handleLogin}>login</button>
-      {/* <button
-        formAction={() => {
-          signup; 
-        }}
-      >
-        sign up 2
-      </button> */}
     </form>
   );
 }

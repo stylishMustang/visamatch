@@ -21,7 +21,7 @@ export default function JobList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [jobsToShow, setJobsToShow] = useState(3);
-  const [userHasPaid, _setUserHasPaid] = useState(false);
+  const [userHasPaid] = useState(false);
 
   useEffect(() => {
     sessionStorage.removeItem('jobs'); // Clear cached jobs on page load or refresh
