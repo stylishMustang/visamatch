@@ -43,7 +43,7 @@ export default function WaitlistPopup() {
           </p>
         </div>
 
-        <div className="aspect-[480/320] w-full max-w-[480px] mx-auto rounded-[15px] overflow-hidden border border-transparent hover:border-[rgba(255,255,255,0.18)] transition-colors duration-200 flex items-center justify-center">
+        <div className="aspect-[600/300] w-full max-w-[600px] mx-auto rounded-[15px] overflow-hidden border border-transparent hover:border-[rgba(255,255,255,0.18)] transition-colors duration-200 flex items-center justify-center">
           <iframe
             src="https://embeds.beehiiv.com/4ab9ced1-0bf9-41a0-958f-61504fe922b5"
             data-test-id="beehiiv-embed"
