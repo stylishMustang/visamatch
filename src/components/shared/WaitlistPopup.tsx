@@ -14,10 +14,10 @@ export default function WaitlistPopup() {
     }
   }, []);
 
-  const handleClose = () => {
-    setIsOpen(false);
-    localStorage.setItem(LOCAL_STORAGE_KEY_WAITLIST_IFRAME_CLOSED, 'true');
-  };
+  // const handleClose = () => {
+  //   setIsOpen(false);
+  //   localStorage.setItem(LOCAL_STORAGE_KEY_WAITLIST_IFRAME_CLOSED, 'true');
+  // };
 
   if (!isOpen) {
     return null;
